@@ -6,25 +6,28 @@
 
 ### realistic password/wordlist generation
 
-| Argument          | Description                                                  |
-|-------------------|--------------------------------------------------------------|
-| `-e, --essid`     | Target ESSID (e.g., BELL123456)                              |
-| `-a, --area`      | Area code for phone number guesses (e.g., 416)               |
-| `-s, --street`    | Street name (e.g., Main, KingWest)                           |
-| `-o, --output`    | File to save the generated passwords                         |
-| `--seasons`       | Include seasonal guesses                                     |
-| `--months`        | Include month/year combinations                              |
-| `--holidays`      | Include holiday-based guesses                                |
-| `--names`         | Include popular names + years                                |
-| `--events`        | Include global event-related patterns                        |
-| `--sports`        | Include sports teams + years                                 |
-| `--no-year`       | Exclude year suffix from guesses                             |
-| `--add-numbers`   | Append numbers 1-N to each generated string (default 1–1000) |
-| `--clean-length`  | Remove lines under 8 characters long                         |
-| `--clean-numbers` | Remove lines containing only numbers                         |
-| `--capitalize`    | Capitalize the first character of each line (skips numbers)  |
-| `--filler`        | Adds junk numeric strings to the start and end of file       |
-| `--filler-count`  | Total filler lines (default: 7000, 5000 start + 2000 end)    |
+| Argument          | Description                                                                                                                   |
+|-------------------|-------------------------------------------------------------------------------------------------------------------------------|
+| `-e, --essid`     | Target ESSID (e.g., BELL123456)                                                                                               |
+| `-a, --area`      | Area code for phone number guesses (e.g., 416)                                                                                |
+| `-s, --street`    | Street name (e.g., Main, KingWest)                                                                                            |
+| `-o, --output`    | File to save the generated passwords                                                                                          |
+| `--seasons`       | Include seasonal guesses                                                                                                      |
+| `--months`        | Include month/year combinations                                                                                               |
+| `--holidays`      | Include holiday-based guesses                                                                                                 |
+| `--names`         | Include popular names + years                                                                                                 |
+| `--events`        | Include global event-related patterns                                                                                         |
+| `--sports`        | Include sports teams + years                                                                                                  |
+| `--no-year`       | Exclude year suffix from guesses                                                                                              |
+| `--add-numbers`   | Append numbers 1-N to each generated string (default 1–1000)                                                                  |
+| `--clean-length`  | Remove lines under 8 characters long                                                                                          |
+| `--clean-numbers` | Remove lines containing only numbers                                                                                          |
+| `--capitalize`    | Capitalize the first character of each line (skips numbers)                                                                   |
+| `--filler`        | Adds junk numeric strings to the start and end of file                                                                        |
+| `--filler-count`  | Total filler lines (default: 7000, 5000 start + 2000 end)                                                                     |
+| `--ai-names`      | Augments `--names` with offline AI-generated human names using a character-level Markov model trained on common name patterns |
+| `--ai-ollama`     | Generate names or words using a local Ollama LLM. Uses a default `prompt.json` (editable) or a custom prompt via `--prompt`   |
+
 ---
 + ```bash
   # 1. Generate guesses for a specific ESSID

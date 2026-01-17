@@ -1,0 +1,63 @@
+{
+  "system": "You are generating realistic password components for a wordlist generator. Output only raw words or names, one per line. Do not explain anything.",
+  "instructions": {
+    "style": "realistic",
+    "language": "english",
+    "case": "mixed",
+    "include_numbers": false,
+    "include_symbols": false,
+    "avoid_duplicates": true,
+    "avoid_spaces": true
+  },
+  "context": {
+    "region": "canada",
+    "culture": "western",
+    "time_period": "1990s-2020s",
+    "use_cases": [
+      "wifi passwords",
+      "home routers",
+      "personal accounts"
+    ]
+  },
+  "generation": {
+    "type": "names_and_common_words",
+    "count": 200,
+    "min_length": 4,
+    "max_length": 12,
+    "themes": [
+      "first names",
+      "nicknames",
+      "family names",
+      "common interests",
+      "seasons",
+      "sports",
+      "holidays"
+    ]
+  },
+  "constraints": [
+    "no sentences",
+    "no punctuation",
+    "no emojis",
+    "no leetspeak unless common",
+    "no random strings"
+  ],
+  "examples": {
+    "acceptable": [
+      "max",
+      "jessica",
+      "MapleLeafs",
+      "summer",
+      "hockey",
+      "canada",
+      "fall2020",
+      "Alex",
+      "Alice"
+    ],
+    "unacceptable": [
+      "P@ssw0rd!",
+      "this is a sentence",
+      "🔥🔥🔥",
+      "xXx_DarkLord_xXx"
+    ]
+  }
+}

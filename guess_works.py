@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 # aMiscreant
 import argparse
+import json
 import random
 import string
+import subprocess
 from datetime import datetime
 
 # Canadian phone prefixes, feel free to expand
@@ -313,9 +315,12 @@ def holiday_guesses(args):
     return [f"{h}{y}" if not args.no_year else h for h in holidays for y in years]
 
 def name_guesses(args):
+    base_names = popular_names.copy()
+    if args.ai_names:
+        base_names += ai_markov_names(popular_names, count=300)
     if args.add_numbers:
-        return [f"{name}{i}" for name in popular_names for i in range(1, args.add_numbers + 1)]
-    return [f"{name}" if args.no_year else f"{name}{y}" for name in popular_names for y in years]
+        return [f"{name}{i}" for name in base_names for i in range(1, args.add_numbers + 1)]
+    return [f"{name}" if args.no_year else f"{name}{y}" for name in base_names for y in years]
 
 def event_guesses(args):
     if args.add_numbers:
@@ -331,6 +336,48 @@ def sports_guesses(args):
 def random_filler_lines(count=1000, length=8):
     """Generate N random numeric strings of given length."""
     return ["".join(random.choices(string.digits, k=length)) for _ in range(count)]
+
+def ai_ollama_generate(args, default_prompt_file="prompt.json"):
+    """
+    Generate wordlist components using a local Ollama LLM.
+    Returns a list of strings (one per line).
+    """
+    # Determine prompt source
+    if args.prompt:
+        prompt_text = args.prompt
+    else:
+        try:
+            with open(default_prompt_file, "r") as f:
+                prompt_json = json.load(f)
+                prompt_text = json.dumps(prompt_json, indent=2)
+        except FileNotFoundError:
+            print("[!] prompt.json not found and no --prompt provided")
+            return []
+
+    try:
+        result = subprocess.run(
+            ["ollama", "run", "llama3"],
+            input=prompt_text,
+            capture_output=True,
+            text=True,
+            check=True
+        )
+    except subprocess.CalledProcessError as e:
+        print("[!] Ollama execution failed")
+        print(e.stderr)
+        return []
+
+    # Clean and normalize output
+    lines = []
+    for line in result.stdout.splitlines():
+        line = line.strip()
+        if not line:
+            continue
+        if " " in line:
+            continue
+        lines.append(line)
+
+    return lines
 
 # --- Master Guess Generator ---
 def generate_guesses(args):
@@ -354,8 +401,42 @@ def generate_guesses(args):
         all_guesses.update(event_guesses(args))
     if args.sports:
         all_guesses.update(sports_guesses(args))
+    if args.ai_ollama:
+        all_guesses.update(ai_ollama_generate(args))
 
     return sorted(all_guesses)
+
+def ai_markov_names(seed_names, count=200, min_len=4, max_len=10):
+    """
+    Simple character-level Markov chain name generator
+    """
+    from collections import defaultdict
+    chains = defaultdict(list)
+
+    for name in seed_names:
+        name = f"^{name.lower()}$"
+        for i in range(len(name) - 2):
+            chains[name[i:i+2]].append(name[i+2])
+
+    generated = set()
+
+    while len(generated) < count:
+        key = "^" + random.choice(string.ascii_lowercase)
+        name = ""
+        while True:
+            next_chars = chains.get(key)
+            if not next_chars:
+                break
+            c = random.choice(next_chars)
+            if c == "$":
+                break
+            name += c
+            key = key[1] + c
+
+        if min_len <= len(name) <= max_len:
+            generated.add(name)
+
+    return list(generated)
 
 
 # --- CLI ---
@@ -405,7 +486,22 @@ def main():
     parser.add_argument("--filler-count", type=int, default=7000,
                         help="Total filler lines (default: 7000, 5000 start + 2000 end)")
 
+    # AI integration
+    parser.add_argument("--ai-names", action="store_true",
+        help="Augment --names with offline AI-generated human names (Markov-based)")
+    parser.add_argument("--ai-ollama", action="store_true",
+        help="Generate names or words using a local Ollama LLM (uses prompt.json by default)")
+    parser.add_argument("--prompt", type=str,
+        help="Manual prompt string for --ai-ollama (overrides prompt.json)")
+
     args = parser.parse_args()
+
+    if args.ai_names:
+        args.names = True
+
+    if args.prompt and not args.ai_ollama:
+        parser.error("--prompt requires --ai-ollama")
+
     guesses = generate_guesses(args)
     guesses = process_wordlist(guesses, args)
 
