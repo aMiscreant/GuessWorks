@@ -356,7 +356,8 @@ def ai_ollama_generate(args, default_prompt_file="prompt.json"):
         # Wrap JSON into an instruction the model understands
         user_prompt = (
             "Generate realistic password components.\n"
-            "Output ONLY raw words or names, one per line.\n"
+            "Output EXACTLY 200 entries.\n"
+            "One word per line.\n"
             "No explanations, no numbering, no symbols.\n\n"
             f"Context:\n{json.dumps(prompt_json, indent=2)}"
         )
@@ -394,6 +395,8 @@ def ai_ollama_generate(args, default_prompt_file="prompt.json"):
 def generate_guesses(args):
     all_guesses = set()
 
+    if args.ai_ollama:
+        all_guesses.update(ai_ollama_generate(args))
     if args.essid:
         all_guesses.update(isp_default_guesses(args.essid))
     if args.area:
@@ -412,8 +415,6 @@ def generate_guesses(args):
         all_guesses.update(event_guesses(args))
     if args.sports:
         all_guesses.update(sports_guesses(args))
-    if args.ai_ollama:
-        all_guesses.update(ai_ollama_generate(args))
 
     return sorted(all_guesses)
 
