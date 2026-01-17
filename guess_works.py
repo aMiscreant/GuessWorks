@@ -342,22 +342,29 @@ def ai_ollama_generate(args, default_prompt_file="prompt.json"):
     Generate wordlist components using a local Ollama LLM.
     Returns a list of strings (one per line).
     """
-    # Determine prompt source
+    # Build final prompt
     if args.prompt:
-        prompt_text = args.prompt
+        user_prompt = args.prompt
     else:
         try:
             with open(default_prompt_file, "r") as f:
                 prompt_json = json.load(f)
-                prompt_text = json.dumps(prompt_json, indent=2)
         except FileNotFoundError:
             print("[!] prompt.json not found and no --prompt provided")
             return []
 
+        # Wrap JSON into an instruction the model understands
+        user_prompt = (
+            "Generate realistic password components.\n"
+            "Output ONLY raw words or names, one per line.\n"
+            "No explanations, no numbering, no symbols.\n\n"
+            f"Context:\n{json.dumps(prompt_json, indent=2)}"
+        )
+
     try:
         result = subprocess.run(
             ["ollama", "run", "llama3"],
-            input=prompt_text,
+            input=user_prompt,
             capture_output=True,
             text=True,
             check=True
@@ -367,17 +374,21 @@ def ai_ollama_generate(args, default_prompt_file="prompt.json"):
         print(e.stderr)
         return []
 
-    # Clean and normalize output
-    lines = []
+    words = []
     for line in result.stdout.splitlines():
         line = line.strip()
+        # Clean common LLM formatting
+        line = line.lstrip("-•0123456789. ").strip()
         if not line:
+            continue
+        if len(line) < 3:
             continue
         if " " in line:
             continue
-        lines.append(line)
 
-    return lines
+        words.append(line)
+
+    return words
 
 # --- Master Guess Generator ---
 def generate_guesses(args):
